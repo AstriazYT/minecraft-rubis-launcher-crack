@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radiant Launcher</title>
+    <title>Radiant Survie - Crack Launcher</title>
     <style>
         * {
             box-sizing: border-box;
@@ -103,7 +103,7 @@
             color: #ffffff;
         }
 
-        /* --- Centre : Logo & Comptes --- */
+        /* --- Centre : Logo & Pseudo Crack --- */
         .center-container {
             flex: 1;
             display: flex;
@@ -149,27 +149,45 @@
             text-transform: uppercase;
         }
 
-        .account-bar {
-            display: none;
+        /* Zone de saisie du pseudo pour le mode Crack */
+        .username-box {
+            display: flex;
             align-items: center;
             gap: 8px;
             margin-top: 5px;
             -webkit-app-region: no-drag;
         }
 
-        .account-bar.visible {
-            display: flex;
-        }
-
-        .account-bar select {
+        .username-box input {
             background: #15161c;
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 6px;
-            padding: 7px 10px;
-            font-size: 12px;
-            min-width: 170px;
+            padding: 8px 12px;
+            font-size: 13px;
             outline: none;
+            text-align: center;
+            width: 180px;
+            transition: border-color 0.2s;
+        }
+
+        .username-box input:focus {
+            border-color: #ff416c;
+        }
+
+        .username-box button {
+            background: rgba(255, 65, 108, 0.15);
+            border: 1px solid #ff416c;
+            color: #ffffff;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .username-box button:hover {
+            background: rgba(255, 65, 108, 0.3);
         }
 
         /* --- Bas : RAM, Progression & Bouton --- */
@@ -267,32 +285,11 @@
             transform: none;
             box-shadow: none;
         }
-
-        .mini-btn {
-            background: none;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 6px;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 11px;
-            padding: 7px 10px;
-            cursor: pointer;
-            transition: color 0.2s, border-color 0.2s;
-        }
-
-        .mini-btn:hover {
-            color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.35);
-        }
-
-        .mini-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
     </style>
 </head>
 <body>
 
-    <!-- Barre supérieure : Statut serveur, MAJ (Flèche) & Contrôles fenêtre -->
+    <!-- Barre supérieure : Statut serveur, MAJ & Contrôles fenêtre -->
     <div class="top-bar">
         <div class="server-status">
             <div id="status-dot" class="status-dot"></div>
@@ -307,17 +304,16 @@
         </div>
     </div>
 
-    <!-- Centre : Logo & Comptes -->
+    <!-- Centre : Logo & Choix du Pseudo -->
     <div class="center-container">
         <div class="logo-box">
             <span class="logo-text">R</span>
         </div>
-        <div class="server-name" id="user-display">Radiant Survie</div>
+        <div class="server-name">Radiant Survie (Crack)</div>
 
-        <div class="account-bar" id="account-bar">
-            <select id="account-select"></select>
-            <button class="mini-btn" id="add-btn">+ Ajouter</button>
-            <button class="mini-btn" id="remove-btn">Retirer</button>
+        <div class="username-box">
+            <input type="text" id="username-input" placeholder="Ton pseudo en jeu" value="Joueur">
+            <button id="save-username-btn">Valider</button>
         </div>
     </div>
 
@@ -334,7 +330,7 @@
         </div>
 
         <div class="status-info">
-            <span id="status-text">En attente de connexion...</span>
+            <span id="status-text">Prêt à lancer...</span>
             <span id="percent-text"></span>
         </div>
 
@@ -342,7 +338,7 @@
             <div id="progress-fill" class="progress-bar-fill"></div>
         </div>
 
-        <button id="main-btn" class="btn-action" disabled>CHARGEMENT...</button>
+        <button id="main-btn" class="btn-action">JOUER</button>
     </div>
 
     <script>
@@ -352,67 +348,16 @@
         const statusText = document.getElementById('status-text');
         const percentText = document.getElementById('percent-text');
         const progressFill = document.getElementById('progress-fill');
-        const userDisplay = document.getElementById('user-display');
         const closeBtn = document.getElementById('close-btn');
         const minimizeBtn = document.getElementById('minimize-btn');
-        const accountBar = document.getElementById('account-bar');
-        const accountSelect = document.getElementById('account-select');
-        const addBtn = document.getElementById('add-btn');
-        const removeBtn = document.getElementById('remove-btn');
         const updateBtn = document.getElementById('update-btn');
         const ramSelect = document.getElementById('ram-select');
-
-        let currentState = 'LOGIN'; // 'LOGIN' puis 'PLAY'
-        let loggedIn = false;
-        let activeId = null;
-        let booting = true;
+        const usernameInput = document.getElementById('username-input');
+        const saveUsernameBtn = document.getElementById('save-username-btn');
 
         function resetProgress() {
             progressFill.style.width = '0%';
             percentText.innerText = '';
-        }
-
-        function showLoginButton() {
-            currentState = 'LOGIN';
-            mainBtn.disabled = false;
-            mainBtn.innerText = 'SE CONNECTER (MICROSOFT)';
-        }
-
-        function showPlayButton() {
-            currentState = 'PLAY';
-            mainBtn.disabled = false;
-            mainBtn.innerText = 'JOUER';
-        }
-
-        function renderAccounts(list) {
-            accountSelect.innerHTML = '';
-            if (!list.length) {
-                accountBar.classList.remove('visible');
-                return;
-            }
-            accountBar.classList.add('visible');
-
-            const placeholder = document.createElement('option');
-            placeholder.value = '';
-            placeholder.textContent = 'Choisir un compte';
-            placeholder.disabled = true;
-            accountSelect.appendChild(placeholder);
-
-            list.forEach((acc) => {
-                const opt = document.createElement('option');
-                opt.value = acc.id;
-                opt.textContent = acc.name;
-                accountSelect.appendChild(opt);
-            });
-
-            accountSelect.value = activeId || '';
-        }
-
-        function startMicrosoftLogin() {
-            mainBtn.disabled = true;
-            mainBtn.innerText = 'CONNEXION EN COURS...';
-            statusText.innerText = 'Ouverture de la fenêtre Microsoft...';
-            ipcRenderer.send('microsoft-login');
         }
 
         minimizeBtn.addEventListener('click', () => ipcRenderer.send('minimize-window'));
@@ -423,78 +368,33 @@
             ipcRenderer.send('check-for-updates');
         });
 
+        // Validation du pseudo personnalisé
+        saveUsernameBtn.addEventListener('click', () => {
+            const newName = usernameInput.value.trim();
+            if (newName) {
+                ipcRenderer.send('set-offline-username', newName);
+                statusText.innerText = `Pseudo mis à jour : ${newName}`;
+            }
+        });
+
+        // Lancement du jeu
         mainBtn.addEventListener('click', () => {
-            if (currentState === 'LOGIN') {
-                startMicrosoftLogin();
-            } else if (currentState === 'PLAY') {
-                mainBtn.disabled = true;
-                mainBtn.innerText = 'LANCEMENT...';
-                statusText.innerText = 'Préparation du jeu...';
-                percentText.innerText = '0%';
-                progressFill.style.width = '0%';
-                
-                // Récupération de la RAM sélectionnée dans le menu déroulant
-                const selectedRam = ramSelect.value;
-                ipcRenderer.send('launch-game', selectedRam);
-            }
-        });
-
-        addBtn.addEventListener('click', startMicrosoftLogin);
-
-        accountSelect.addEventListener('change', () => {
-            const id = accountSelect.value;
-            if (!id || id === activeId) return;
-            loggedIn = false;
-            activeId = null;
             mainBtn.disabled = true;
-            mainBtn.innerText = 'CONNEXION...';
-            statusText.innerText = 'Connexion au compte...';
-            ipcRenderer.send('select-account', id);
-        });
-
-        removeBtn.addEventListener('click', () => {
-            const id = accountSelect.value || activeId;
-            if (!id) return;
-            ipcRenderer.send('remove-account', id);
-        });
-
-        // Liste des comptes mémorisés
-        ipcRenderer.on('accounts', (event, data) => {
-            renderAccounts(data.accounts);
-            if (booting) {
-                booting = false;
-                if (!data.lastUsed) {
-                    statusText.innerText = 'En attente de connexion...';
-                    showLoginButton();
-                }
-            }
-        });
-
-        // Connexion réussie
-        ipcRenderer.on('login-success', (event, data) => {
-            loggedIn = true;
-            activeId = data.id;
-            userDisplay.innerText = `Connecté : ${data.name}`;
-            statusText.innerText = 'Prêt à jouer';
-            accountSelect.value = data.id;
-            showPlayButton();
-        });
-
-        // Déconnexion
-        ipcRenderer.on('logged-out', () => {
-            loggedIn = false;
-            activeId = null;
-            userDisplay.innerText = 'Radiant Survie';
-            statusText.innerText = 'En attente de connexion...';
-            resetProgress();
-            showLoginButton();
+            mainBtn.innerText = 'LANCEMENT...';
+            statusText.innerText = 'Préparation du jeu...';
+            percentText.innerText = '0%';
+            progressFill.style.width = '0%';
+            
+            const selectedRam = ramSelect.value;
+            ipcRenderer.send('launch-game', selectedRam);
         });
 
         // Jeu fermé
         ipcRenderer.on('game-closed', () => {
             statusText.innerText = 'Prêt à jouer';
             resetProgress();
-            showPlayButton();
+            mainBtn.disabled = false;
+            mainBtn.innerText = 'JOUER';
         });
 
         // Statut du serveur Falix en direct
@@ -510,19 +410,15 @@
             }
         });
 
-        // Suivi du statut / de la progression (téléchargement Java / Mods)
+        // Suivi du statut / de la progression
         ipcRenderer.on('status', (event, data) => {
             if (typeof data === 'string') {
                 statusText.innerText = data;
 
                 if (data.includes('Erreur')) {
-                    booting = false;
                     resetProgress();
-                    if (loggedIn) {
-                        showPlayButton();
-                    } else {
-                        showLoginButton();
-                    }
+                    mainBtn.disabled = false;
+                    mainBtn.innerText = 'JOUER';
                 }
             } else if (typeof data === 'object') {
                 if (data.text) statusText.innerText = data.text;
@@ -533,7 +429,7 @@
             }
         });
 
-        // Demande initiale des comptes
+        // Demande initiale pour charger les paramètres
         ipcRenderer.send('get-accounts');
     </script>
 </body>
