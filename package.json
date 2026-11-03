@@ -1,0 +1,48 @@
+{
+  "name": "radiant-launcher-win8",
+  "version": "1.0.3",
+  "description": "Launcher Radiant Survie",
+  "author": "Radw123ytb",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.radiant.survie.win10",
+    "productName": "Radiant Survie",
+    "win": {
+      "target": ["nsis"],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Radiant Survie"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "AstriazYT",
+        "repo": "minecraft-rubis-launcher",
+        "releaseType": "release"
+      }
+    ],
+    "forceCodeSigning": false
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "axios": "^1.7.9",
+    "electron-updater": "^6.3.0",
+    "fs-extra": "^11.2.0",
+    "minecraft-launcher-core": "^3.18.2",
+    "msmc": "^5.0.0"
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3"
+  }
+}

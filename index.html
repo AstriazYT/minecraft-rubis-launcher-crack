@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radiant Launcher</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background: #0b0c10;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 30px;
+            overflow: hidden;
+            -webkit-app-region: drag;
+        }
+
+        /* --- En-tête : Serveur & Bouton de mise à jour --- */
+        .top-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            -webkit-app-region: no-drag;
+        }
+
+        .server-status {
+            background: rgba(21, 22, 28, 0.8);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #707070;
+        }
+
+        .status-dot.online {
+            background-color: #4caf50;
+            box-shadow: 0 0 6px #4caf50;
+        }
+
+        .status-dot.offline {
+            background-color: #ff416c;
+        }
+
+        .update-btn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.6);
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .update-btn:hover {
+            color: #ffffff;
+            border-color: #ff416c;
+            background: rgba(255, 65, 108, 0.1);
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 12px;
+            -webkit-app-region: no-drag;
+        }
+
+        .win-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 16px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .win-btn:hover {
+            color: #ffffff;
+        }
+
+        /* --- Centre : Logo & Comptes --- */
+        .center-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .logo-box {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .logo-box::after {
+            content: '';
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #ff4b2b, #ff416c);
+            filter: blur(35px);
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        .logo-text {
+            font-size: 70px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ff4b2b 0%, #ff416c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
+        }
+
+        .server-name {
+            font-size: 13px;
+            letter-spacing: 3px;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+        }
+
+        .account-bar {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-top: 5px;
+            -webkit-app-region: no-drag;
+        }
+
+        .account-bar.visible {
+            display: flex;
+        }
+
+        .account-bar select {
+            background: #15161c;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 6px;
+            padding: 7px 10px;
+            font-size: 12px;
+            min-width: 170px;
+            outline: none;
+        }
+
+        /* --- Bas : RAM, Progression & Bouton --- */
+        .bottom-container {
+            width: 100%;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+            -webkit-app-region: no-drag;
+        }
+
+        .settings-row {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(21, 22, 28, 0.6);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .settings-row select {
+            background: #15161c;
+            color: #ff416c;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: bold;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .status-info {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        #status-text {
+            font-weight: 500;
+        }
+
+        #percent-text {
+            font-weight: 700;
+            color: #ff416c;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff4b2b, #ff416c);
+            transition: width 0.3s ease;
+        }
+
+        .btn-action {
+            width: 100%;
+            height: 46px;
+            background: linear-gradient(90deg, #ff4b2b 0%, #ff416c 100%);
+            border: none;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255, 65, 108, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 25px rgba(255, 65, 108, 0.5);
+        }
+
+        .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .mini-btn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 11px;
+            padding: 7px 10px;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .mini-btn:hover {
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+
+        .mini-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Barre supérieure : Statut serveur, MAJ (Flèche) & Contrôles fenêtre -->
+    <div class="top-bar">
+        <div class="server-status">
+            <div id="status-dot" class="status-dot"></div>
+            <span id="server-text">Serveur : Connexion...</span>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button class="update-btn" id="update-btn" title="Mettre à jour le launcher">⬇️</button>
+            <div class="window-controls">
+                <button class="win-btn" id="minimize-btn">−</button>
+                <button class="win-btn" id="close-btn">✕</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Centre : Logo & Comptes -->
+    <div class="center-container">
+        <div class="logo-box">
+            <span class="logo-text">R</span>
+        </div>
+        <div class="server-name" id="user-display">Radiant Survie</div>
+
+        <div class="account-bar" id="account-bar">
+            <select id="account-select"></select>
+            <button class="mini-btn" id="add-btn">+ Ajouter</button>
+            <button class="mini-btn" id="remove-btn">Retirer</button>
+        </div>
+    </div>
+
+    <!-- Bas : RAM, Barre de progression & Bouton d'action -->
+    <div class="bottom-container">
+        <div class="settings-row">
+            <label for="ram-select">Allocation RAM :</label>
+            <select id="ram-select">
+                <option value="2G">2 Go</option>
+                <option value="4G" selected>4 Go (Recommandé)</option>
+                <option value="6G">6 Go</option>
+                <option value="8G">8 Go</option>
+            </select>
+        </div>
+
+        <div class="status-info">
+            <span id="status-text">En attente de connexion...</span>
+            <span id="percent-text"></span>
+        </div>
+
+        <div class="progress-bar-bg">
+            <div id="progress-fill" class="progress-bar-fill"></div>
+        </div>
+
+        <button id="main-btn" class="btn-action" disabled>CHARGEMENT...</button>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        const mainBtn = document.getElementById('main-btn');
+        const statusText = document.getElementById('status-text');
+        const percentText = document.getElementById('percent-text');
+        const progressFill = document.getElementById('progress-fill');
+        const userDisplay = document.getElementById('user-display');
+        const closeBtn = document.getElementById('close-btn');
+        const minimizeBtn = document.getElementById('minimize-btn');
+        const accountBar = document.getElementById('account-bar');
+        const accountSelect = document.getElementById('account-select');
+        const addBtn = document.getElementById('add-btn');
+        const removeBtn = document.getElementById('remove-btn');
+        const updateBtn = document.getElementById('update-btn');
+        const ramSelect = document.getElementById('ram-select');
+
+        let currentState = 'LOGIN'; // 'LOGIN' puis 'PLAY'
+        let loggedIn = false;
+        let activeId = null;
+        let booting = true;
+
+        function resetProgress() {
+            progressFill.style.width = '0%';
+            percentText.innerText = '';
+        }
+
+        function showLoginButton() {
+            currentState = 'LOGIN';
+            mainBtn.disabled = false;
+            mainBtn.innerText = 'SE CONNECTER (MICROSOFT)';
+        }
+
+        function showPlayButton() {
+            currentState = 'PLAY';
+            mainBtn.disabled = false;
+            mainBtn.innerText = 'JOUER';
+        }
+
+        function renderAccounts(list) {
+            accountSelect.innerHTML = '';
+            if (!list.length) {
+                accountBar.classList.remove('visible');
+                return;
+            }
+            accountBar.classList.add('visible');
+
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Choisir un compte';
+            placeholder.disabled = true;
+            accountSelect.appendChild(placeholder);
+
+            list.forEach((acc) => {
+                const opt = document.createElement('option');
+                opt.value = acc.id;
+                opt.textContent = acc.name;
+                accountSelect.appendChild(opt);
+            });
+
+            accountSelect.value = activeId || '';
+        }
+
+        function startMicrosoftLogin() {
+            mainBtn.disabled = true;
+            mainBtn.innerText = 'CONNEXION EN COURS...';
+            statusText.innerText = 'Ouverture de la fenêtre Microsoft...';
+            ipcRenderer.send('microsoft-login');
+        }
+
+        minimizeBtn.addEventListener('click', () => ipcRenderer.send('minimize-window'));
+        closeBtn.addEventListener('click', () => window.close());
+
+        // Bouton de mise à jour (Flèche vers le bas)
+        updateBtn.addEventListener('click', () => {
+            ipcRenderer.send('check-for-updates');
+        });
+
+        mainBtn.addEventListener('click', () => {
+            if (currentState === 'LOGIN') {
+                startMicrosoftLogin();
+            } else if (currentState === 'PLAY') {
+                mainBtn.disabled = true;
+                mainBtn.innerText = 'LANCEMENT...';
+                statusText.innerText = 'Préparation du jeu...';
+                percentText.innerText = '0%';
+                progressFill.style.width = '0%';
+                
+                // Récupération de la RAM sélectionnée dans le menu déroulant
+                const selectedRam = ramSelect.value;
+                ipcRenderer.send('launch-game', selectedRam);
+            }
+        });
+
+        addBtn.addEventListener('click', startMicrosoftLogin);
+
+        accountSelect.addEventListener('change', () => {
+            const id = accountSelect.value;
+            if (!id || id === activeId) return;
+            loggedIn = false;
+            activeId = null;
+            mainBtn.disabled = true;
+            mainBtn.innerText = 'CONNEXION...';
+            statusText.innerText = 'Connexion au compte...';
+            ipcRenderer.send('select-account', id);
+        });
+
+        removeBtn.addEventListener('click', () => {
+            const id = accountSelect.value || activeId;
+            if (!id) return;
+            ipcRenderer.send('remove-account', id);
+        });
+
+        // Liste des comptes mémorisés
+        ipcRenderer.on('accounts', (event, data) => {
+            renderAccounts(data.accounts);
+            if (booting) {
+                booting = false;
+                if (!data.lastUsed) {
+                    statusText.innerText = 'En attente de connexion...';
+                    showLoginButton();
+                }
+            }
+        });
+
+        // Connexion réussie
+        ipcRenderer.on('login-success', (event, data) => {
+            loggedIn = true;
+            activeId = data.id;
+            userDisplay.innerText = `Connecté : ${data.name}`;
+            statusText.innerText = 'Prêt à jouer';
+            accountSelect.value = data.id;
+            showPlayButton();
+        });
+
+        // Déconnexion
+        ipcRenderer.on('logged-out', () => {
+            loggedIn = false;
+            activeId = null;
+            userDisplay.innerText = 'Radiant Survie';
+            statusText.innerText = 'En attente de connexion...';
+            resetProgress();
+            showLoginButton();
+        });
+
+        // Jeu fermé
+        ipcRenderer.on('game-closed', () => {
+            statusText.innerText = 'Prêt à jouer';
+            resetProgress();
+            showPlayButton();
+        });
+
+        // Statut du serveur Falix en direct
+        ipcRenderer.on('server-status', (event, data) => {
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('server-text');
+            if (data.online) {
+                dot.className = 'status-dot online';
+                text.innerText = `Serveur : En ligne (${data.players}/${data.max})`;
+            } else {
+                dot.className = 'status-dot offline';
+                text.innerText = 'Serveur : Hors ligne';
+            }
+        });
+
+        // Suivi du statut / de la progression (téléchargement Java / Mods)
+        ipcRenderer.on('status', (event, data) => {
+            if (typeof data === 'string') {
+                statusText.innerText = data;
+
+                if (data.includes('Erreur')) {
+                    booting = false;
+                    resetProgress();
+                    if (loggedIn) {
+                        showPlayButton();
+                    } else {
+                        showLoginButton();
+                    }
+                }
+            } else if (typeof data === 'object') {
+                if (data.text) statusText.innerText = data.text;
+                if (data.percent !== undefined) {
+                    progressFill.style.width = data.percent + '%';
+                    percentText.innerText = Math.round(data.percent) + '%';
+                }
+            }
+        });
+
+        // Demande initiale des comptes
+        ipcRenderer.send('get-accounts');
+    </script>
+</body>
+</html>
