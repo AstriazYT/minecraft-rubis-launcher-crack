@@ -1,7 +1,7 @@
 {
-  "name": "radiant-launcher-win8",
-  "version": "1.0.3",
-  "description": "Launcher Radiant Survie",
+  "name": "radiant-launcher-crack",
+  "version": "1.0.0",
+  "description": "Launcher Radiant Survie (Version Crack)",
   "author": "Radw123ytb",
   "main": "main.js",
   "scripts": {
@@ -9,8 +9,8 @@
     "dist": "electron-builder --win nsis"
   },
   "build": {
-    "appId": "com.radiant.survie.win10",
-    "productName": "Radiant Survie",
+    "appId": "com.radiant.survie.crack",
+    "productName": "Radiant Survie Crack",
     "win": {
       "target": ["nsis"],
       "icon": "assets/icon.ico"
@@ -21,13 +21,13 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Radiant Survie"
+      "shortcutName": "Radiant Survie Crack"
     },
     "publish": [
       {
         "provider": "github",
         "owner": "AstriazYT",
-        "repo": "minecraft-rubis-launcher",
+        "repo": "minecraft-rubis-launcher-crack",
         "releaseType": "release"
       }
     ],
