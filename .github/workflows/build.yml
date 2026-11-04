@@ -2,7 +2,8 @@ name: Build Launcher
 
 on:
   push:
-    tags: [ "v*" ]
+    tags:
+      - '*'
 
 permissions:
   contents: write
