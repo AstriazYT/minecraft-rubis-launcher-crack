@@ -29,5 +29,5 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Radiant-Survie-Setup
+          name: crack-Radiant-Survie-Setup
           path: dist/*.exe
